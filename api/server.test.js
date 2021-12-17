@@ -46,10 +46,30 @@ describe('registration endpoint', () => {
 describe('login endpoint', () => {
   beforeEach(async () => {
     const hash = bcrypt.hashSync(validAuthOne.password, BCRYPT_ROUNDS)
-    const res = await db('users').insert({username: validAuthOne.username, password: hash})
+    await db('users').insert({username: validAuthOne.username, password: hash})
   })
   it('user can successfully login with correct credentials', async () => {
     const res = await request(server).post('/api/auth/login').send(validAuthOne)
     expect(res.body.message).toBe('welcome, bob')
+  })
+  it('does not login user witout password', async () => {
+    const res = await request(server).post('/api/auth/login').send(invalidAuthTwo)
+    expect(res.body.message).toBe('username and password required')
+  })
+})
+
+describe('jokes endpoint', () => {
+  beforeEach(async () => {
+    const hash = bcrypt.hashSync(validAuthOne.password, BCRYPT_ROUNDS)
+    await db('users').insert({username: validAuthOne.username, password: hash})
+  })
+  it('user without a token cannot see jokes', async () => {
+    const res = await request(server).get('/api/jokes')
+    expect(res.body.message).toBe('token required')
+  })
+  it('user without a valid token can see jokes', async () => {
+    let res = await request(server).post('/api/auth/login').send(validAuthOne)
+    res = await request(server).get('/api/jokes').set('Authorization', res.body.token)
+    expect(res.body).toMatchObject(jokes)
   })
 })
