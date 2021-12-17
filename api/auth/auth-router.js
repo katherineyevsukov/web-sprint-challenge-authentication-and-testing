@@ -1,23 +1,32 @@
-const router = require('express').Router();
-const bcrypt = require('bcryptjs')
-const { validateRequestBody, checkUsernameAvailable, checkUsernameExists } = require("./auth-middleware")
-const { BCRYPT_ROUNDS } = require('../../config')
-const Users = require("./../users/users-model")
+const router = require("express").Router();
+const bcrypt = require("bcryptjs");
+const {
+  validateRequestBody,
+  checkUsernameAvailable,
+  checkUsernameExists,
+} = require("./auth-middleware");
+const { BCRYPT_ROUNDS } = require("../../config");
+const Users = require("./../users/users-model");
+const { tokenBuilder } = require("./auth-helpers");
 
-router.post('/register', validateRequestBody, checkUsernameAvailable, async (req, res) => {
-  let user = req.body
-  const hash = bcrypt.hashSync(user.password, BCRYPT_ROUNDS)
+router.post(
+  "/register",
+  validateRequestBody,
+  checkUsernameAvailable,
+  async (req, res) => {
+    let user = req.body;
+    const hash = bcrypt.hashSync(user.password, BCRYPT_ROUNDS);
 
-  user.password = hash
+    user.password = hash;
 
-  try {
-    const newUser = await Users.add(user)
-    res.status(201).json(newUser)
-  } catch(err){
-    next(err)
-  }
+    try {
+      const newUser = await Users.add(user);
+      res.status(201).json(newUser);
+    } catch (err) {
+      next(err);
+    }
 
-  /*
+    /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
     DO NOT EXCEED 2^8 ROUNDS OF HASHING!
@@ -42,11 +51,23 @@ router.post('/register', validateRequestBody, checkUsernameAvailable, async (req
     4- On FAILED registration due to the `username` being taken,
       the response body should include a string exactly as follows: "username taken".
   */
-});
+  }
+);
 
-router.post('/login', validateRequestBody, checkUsernameExists, (req, res, next) => {
-  res.end('implement login, please!');
-  /*
+router.post(
+  "/login",
+  validateRequestBody,
+  checkUsernameExists,
+  (req, res, next) => {
+    if (bcrypt.compareSync(req.body.password, req.userFromDb.password)) {
+      const token = tokenBuilder(req.userFromDb);
+
+      res.status(200).json({ message: `welcome ${req.body.username}` , token});
+    } else {
+      next({ status: 401, message: "invalid credentials" });
+    }
+
+    /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
 
@@ -69,6 +90,7 @@ router.post('/login', validateRequestBody, checkUsernameExists, (req, res, next)
     4- On FAILED login due to `username` not existing in the db, or `password` being incorrect,
       the response body should include a string exactly as follows: "invalid credentials".
   */
-});
+  }
+);
 
 module.exports = router;
