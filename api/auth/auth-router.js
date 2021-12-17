@@ -44,7 +44,7 @@ router.post('/register', validateRequestBody, checkUsernameAvailable, async (req
   */
 });
 
-router.post('/login', validateRequestBody, checkUsernameExists, (req, res) => {
+router.post('/login', validateRequestBody, checkUsernameExists, (req, res, next) => {
   res.end('implement login, please!');
   /*
     IMPLEMENT
