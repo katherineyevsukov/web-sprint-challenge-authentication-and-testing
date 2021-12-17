@@ -54,6 +54,8 @@ Your finished project must include all of the following requirements (further in
 Be prepared to demonstrate your understanding of this week's concepts by answering questions on the following topics.
 
 1. Differences between using _sessions_ or _JSON Web Tokens_ for authentication.
+
+The main difference between sessions and tokens has to do with where they are stored. Sessions are kept in server memory, while tokens are stored only on client side. A token is generated upon logging in with valid credentials and must be sent with every request to the server. On the other hand, a session generates a cookie on the client-side upon proper login and this is the sent automatically with every request for the server to verify. Sessions are easier to invalidate but are not as scalable as tokens. 
 2. What does `bcryptjs` do to help us store passwords in a secure manner?
 3. How are unit tests different from integration and end-to-end testing?
 4. How does _Test Driven Development_ change the way we write applications and tests?
